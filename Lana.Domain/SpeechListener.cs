@@ -14,7 +14,7 @@ namespace Lana.Domain
         //I need cancellationTokenSource, because I might want to cancel listening by command.
         public async Task Run(CancellationTokenSource cancellationTokenSource)
         {
-            using (SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine(new CultureInfo("en-US")))
+            using (var recognizer = new SpeechRecognitionEngine(new CultureInfo("en-US")))
             {
                 var grammars = await CreateGrammars();
                 foreach (var grammar in grammars)
@@ -55,8 +55,12 @@ namespace Lana.Domain
         private void SpeechRecognizedHandler(object sender, SpeechRecognizedEventArgs e)
         {
             string command = e.Result.Text;
-            //Just for testing purposes.
-            Console.WriteLine(command);
+            Console.WriteLine("-----------------------------------");
+            Console.WriteLine($"Recognized: {command}. Confidence: {e.Result.Confidence}");
+            Console.WriteLine("Alternates:");
+            foreach (var line in e.Result.Alternates)
+                Console.WriteLine($"            {line.Text}. Confidence: {line.Confidence}");
+            Console.WriteLine("-----------------------------------");
         }
     }
 }
