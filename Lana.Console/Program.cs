@@ -14,7 +14,7 @@ namespace Lana.Console
         {
             var speechListener = new SpeechListener();
             var cts = new CancellationTokenSource();
-            var speechListenerTask = speechListener.Run(cts);
+            var speechListenerTask = Task.Run(async() => await speechListener.Run(cts));
 
             System.Console.WriteLine("Press any key to exit program.");
             System.Console.ReadKey();
