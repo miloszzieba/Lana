@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Speech.Recognition;
 using System.Text;
@@ -43,7 +44,7 @@ namespace Lana.Domain
             lanaGrammarBuilder.Append("Lana");
             lanaGrammarBuilder.AppendDictation();
             var lanaGrammar = new Grammar(lanaGrammarBuilder);
-            defaultGrammar.Name = "Lana";
+            lanaGrammar.Name = "Lana";
 
             return new List<Grammar>()
             {
@@ -61,6 +62,21 @@ namespace Lana.Domain
             foreach (var line in e.Result.Alternates)
                 Console.WriteLine($"            {line.Text}. Confidence: {line.Confidence}");
             Console.WriteLine("-----------------------------------");
+
+            if (e.Result.Grammar.Name == "Lana")
+            {
+
+                var waveStream = new MemoryStream();
+                e.Result.Audio.WriteToWaveStream(waveStream);
+                waveStream.Flush();
+
+                var converter = new WitAiConverter();
+                var text = converter.Convert(waveStream.ToArray()).GetAwaiter().GetResult();
+
+                Console.WriteLine("Wit.AI:");
+                Console.WriteLine(text);
+                Console.WriteLine("-----------------------------------");
+            }
         }
     }
 }
