@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2037
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lana.Domain", "Lana.Domain\Lana.Domain.csproj", "{9655A5FE-B601-422C-A206-4C09F2F07F59}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lana.Core", "Lana.Core\Lana.Core.csproj", "{2DB230EC-881C-4355-86ED-6CE55D28F6BD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lana.Console", "Lana.Console\Lana.Console.csproj", "{66FFABDD-FA42-4457-8801-2A09CE0A7C21}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lana.App", "Lana.App\Lana.App.csproj", "{89AE5CEE-4705-4BA9-A65D-0E5421C1BCB0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{66FFABDD-FA42-4457-8801-2A09CE0A7C21}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{66FFABDD-FA42-4457-8801-2A09CE0A7C21}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{66FFABDD-FA42-4457-8801-2A09CE0A7C21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89AE5CEE-4705-4BA9-A65D-0E5421C1BCB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89AE5CEE-4705-4BA9-A65D-0E5421C1BCB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89AE5CEE-4705-4BA9-A65D-0E5421C1BCB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89AE5CEE-4705-4BA9-A65D-0E5421C1BCB0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

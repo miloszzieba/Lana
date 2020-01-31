@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Speech.Recognition;
+using System.Speech.Synthesis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,12 +71,19 @@ namespace Lana.Domain
                 e.Result.Audio.WriteToWaveStream(waveStream);
                 waveStream.Flush();
 
-                var converter = new WitAiConverter();
-                var text = converter.Convert(waveStream.ToArray()).GetAwaiter().GetResult();
+                var converter = new WitAiParser();
+                var text = converter.Parse(waveStream.ToArray()).GetAwaiter().GetResult();
 
                 Console.WriteLine("Wit.AI:");
                 Console.WriteLine(text);
                 Console.WriteLine("-----------------------------------");
+
+                var synthesizer = new SpeechSynthesizer();
+                synthesizer.Volume = 100;  // 0...100
+                synthesizer.Rate = -2;     // -10...10
+
+                // Synchronous
+                synthesizer.Speak(text);
             }
         }
     }

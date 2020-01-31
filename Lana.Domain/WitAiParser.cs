@@ -7,12 +7,12 @@ using Newtonsoft.Json;
 
 namespace Lana.Domain
 {
-    public class WitAiConverter
+    public class WitAiParser
     {
         public string Token { get; set; } = ConfigurationManager.AppSettings["WitAiToken"];
         public Exception Exception { get; protected set; }
 
-        public async Task<string> Convert(byte[] bytes)
+        public async Task<string> Parse(byte[] bytes)
         {
             using (var client = new HttpClient())
             {
@@ -33,9 +33,11 @@ namespace Lana.Domain
 
         private class RootObject
         {
+#pragma warning disable IDE1006 // Naming Styles
             public string _text { get; set; }
             public object entities { get; set; }
             public string msg_id { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
         }
     }
 }
