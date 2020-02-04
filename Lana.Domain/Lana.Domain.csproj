@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\Prediction.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SpeechListener.cs" />
     <Compile Include="WitAiParser.cs" />

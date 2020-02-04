@@ -12,12 +12,17 @@ namespace Lana.App
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application
+    public partial class LanaApp : Application
     {
+#if DEBUG
+        private static Mutex _mutex = new Mutex(true, Guid.NewGuid().ToString());
+#endif
+#if RELEASE
         private static Mutex _mutex = new Mutex(true, "Lana");
+#endif
         private static MainWindow _mainWindow = null;
 
-        public App()
+        public LanaApp()
         {
             InitializeComponent();
         }
@@ -27,7 +32,7 @@ namespace Lana.App
         {
             if (_mutex.WaitOne(TimeSpan.Zero, true))
             {
-                var app = new App();
+                var app = new LanaApp();
                 _mainWindow = new MainWindow();
                 app.Run(_mainWindow);
                 _mutex.ReleaseMutex();

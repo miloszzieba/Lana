@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Lana.Domain.Models;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -13,12 +14,22 @@ namespace Lana.Domain
 {
     public class SpeechListener
     {
-        //I need cancellationTokenSource, because I might want to cancel listening by command.
-        public async Task Run(CancellationTokenSource cancellationTokenSource)
+        private readonly SynchronizationContext _synchronizationContext;
+        private readonly ICollection<Prediction> _predictionsList;
+
+        public SpeechListener(ICollection<Prediction> predictionsList, SynchronizationContext synchronizationContext)
         {
+            this._predictionsList = predictionsList;
+            this._synchronizationContext = synchronizationContext;
+        }
+
+        //I need cancellationTokenSource, because I might want to cancel listening by command.
+        public void Run(CancellationTokenSource cancellationTokenSource)
+        {
+            var context = SynchronizationContext.Current;
             using (var recognizer = new SpeechRecognitionEngine(new CultureInfo("en-US")))
             {
-                var grammars = await CreateGrammars();
+                var grammars = CreateGrammars();
                 foreach (var grammar in grammars)
                     recognizer.LoadGrammarAsync(grammar);
 
@@ -34,7 +45,7 @@ namespace Lana.Domain
             }
         }
 
-        private async Task<IEnumerable<Grammar>> CreateGrammars()
+        private IEnumerable<Grammar> CreateGrammars()
         {
             var defaultGrammarBuilder = new GrammarBuilder();
             defaultGrammarBuilder.AppendDictation();
@@ -56,34 +67,45 @@ namespace Lana.Domain
 
         private void SpeechRecognizedHandler(object sender, SpeechRecognizedEventArgs e)
         {
-            string command = e.Result.Text;
-            Console.WriteLine("-----------------------------------");
-            Console.WriteLine($"Recognized: {command}. Confidence: {e.Result.Confidence}");
-            Console.WriteLine("Alternates:");
-            foreach (var line in e.Result.Alternates)
-                Console.WriteLine($"            {line.Text}. Confidence: {line.Confidence}");
-            Console.WriteLine("-----------------------------------");
+            string prediction = e.Result.Text;
+            //REFACTOR
+            _synchronizationContext.Send(x =>
+                _predictionsList.Add(new Prediction()
+                {
+                    Source = "Windows",
+                    Importance = "Main",
+                    Text = prediction
+                }), null);
 
-            if (e.Result.Grammar.Name == "Lana")
+            foreach (var predictionAlternative in e.Result.Alternates)
+                //REFACTOR
+                _synchronizationContext.Send(x =>
+                    _predictionsList.Add(new Prediction()
+                    {
+                        Source = "Windows",
+                        Importance = "Alternative",
+                        Text = predictionAlternative.Text
+                    }), null);
+
+            //REFACTOR
+            if (e.Result.Grammar.Name == "Lana"
+                || prediction.Contains("Lana")
+                || e.Result.Alternates.Any(x => x.Text.Contains("Lana")))
             {
-
                 var waveStream = new MemoryStream();
                 e.Result.Audio.WriteToWaveStream(waveStream);
                 waveStream.Flush();
 
                 var converter = new WitAiParser();
-                var text = converter.Parse(waveStream.ToArray()).GetAwaiter().GetResult();
-
-                Console.WriteLine("Wit.AI:");
-                Console.WriteLine(text);
-                Console.WriteLine("-----------------------------------");
-
-                var synthesizer = new SpeechSynthesizer();
-                synthesizer.Volume = 100;  // 0...100
-                synthesizer.Rate = -2;     // -10...10
-
-                // Synchronous
-                synthesizer.Speak(text);
+                var witaiPrediction = converter.Parse(waveStream.ToArray()).GetAwaiter().GetResult();
+                //REFACTOR
+                _synchronizationContext.Send(x =>
+                    _predictionsList.Add(new Prediction()
+                    {
+                        Source = "Wit.AI",
+                        Importance = "Alternative",
+                        Text = witaiPrediction
+                    }), null);
             }
         }
     }
