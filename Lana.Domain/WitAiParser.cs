@@ -18,16 +18,18 @@ namespace Lana.Domain
             {
                 client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse("Bearer " + Token);
 
-                var content = new ByteArrayContent(bytes);
-                content.Headers.ContentType = new MediaTypeHeaderValue("audio/wav");
+                using (var content = new ByteArrayContent(bytes))
+                {
+                    content.Headers.ContentType = new MediaTypeHeaderValue("audio/wav");
+                    var uri = new Uri("https://api.wit.ai/speech");
+                    var message = await client.PostAsync(uri, content).ConfigureAwait(false);
 
-                var message = await client.PostAsync("https://api.wit.ai/speech", content);
+                    var info = await message.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                var info = await message.Content.ReadAsStringAsync();
+                    var obj = JsonConvert.DeserializeObject<RootObject>(info);
 
-                var obj = JsonConvert.DeserializeObject<RootObject>(info);
-
-                return obj._text;
+                    return obj._text;
+                }
             }
         }
 

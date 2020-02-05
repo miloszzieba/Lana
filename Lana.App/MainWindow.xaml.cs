@@ -1,5 +1,7 @@
-﻿using Lana.Domain;
-using Lana.Domain.Models;
+﻿using Lana.App.Predictions;
+using Lana.Domain;
+using Lana.Domain.Predictions;
+using Lana.Domain.Predictions.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -31,15 +33,29 @@ namespace Lana.App
     {
         private NotifyIcon _notifyIcon = null;
         private CancellationTokenSource _cts = null;
-        private SpeechListener _speechListener = null;
-
-        public ObservableCollection<Prediction> PredictionsList { get; } = new ObservableCollection<Prediction>();
+        private readonly IPredictionRaportingService _predictionRaportingService = null;
+        private readonly Task _speechListenerTask = null;
 
         public MainWindow()
         {
             InitializeComponent();
-            InitializeSpeechListener();
-            DataContext = PredictionsList;
+            _predictionRaportingService = InitializePredictionRaportingService();
+            _speechListenerTask = InitializeSpeechListener();
+
+            DataContext = _predictionRaportingService.PredictionsList;
+        }
+
+        private IPredictionRaportingService InitializePredictionRaportingService()
+        {
+            var synchronizationContext = SynchronizationContext.Current;
+            return new WPFPredictionRaportingService(synchronizationContext);
+        }
+
+        private Task InitializeSpeechListener()
+        {
+            _cts = new CancellationTokenSource();
+            var _speechListener = new SpeechListener(_predictionRaportingService);
+            return Task.Run(() => _speechListener.Run(_cts));
         }
 
         protected override void OnInitialized(EventArgs e)
@@ -51,13 +67,6 @@ namespace Lana.App
             base.OnInitialized(e);
         }
 
-        private void InitializeSpeechListener()
-        {
-            _cts = new CancellationTokenSource();
-            _speechListener = new SpeechListener(PredictionsList, SynchronizationContext.Current);
-            var speechListenerTask = Task.Run(() => _speechListener.Run(_cts));
-        }
-
         private void InitializeNotifyIcon()
         {
             _notifyIcon = new NotifyIcon()
@@ -65,10 +74,10 @@ namespace Lana.App
                 Icon = new Icon("lana_icon.ico"),
                 Visible = true,
                 ContextMenuStrip = new ContextMenuStrip(),
-                Text = "Lana"
+                Text = AppResources.AppName
             };
             _notifyIcon.DoubleClick += NotifyIcon_DoubleClick;
-            _notifyIcon.ContextMenuStrip.Items.Add("Exit", null, Exit_Click);
+            _notifyIcon.ContextMenuStrip.Items.Add(AppResources.ExitLabel, null, Exit_Click);
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)

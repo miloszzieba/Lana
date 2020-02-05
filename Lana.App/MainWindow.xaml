@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Lana.App"
-        xmlns:models="clr-namespace:Lana.Domain.Models;assembly=Lana.Domain"
+        xmlns:predictionsModels="clr-namespace:Lana.Domain.Predictions.Models;assembly=Lana.Domain"
         mc:Ignorable="d"
         Title="Lana" Height="450" Width="800"
         ResizeMode="NoResize">
@@ -29,7 +29,7 @@
             </Setter>
         </Style>
 
-        <DataTemplate DataType="{x:Type models:Prediction}">
+        <DataTemplate DataType="{x:Type predictionsModels:Prediction}">
             <Grid IsSharedSizeScope="True">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition SharedSizeGroup="Source" Width="Auto"/>

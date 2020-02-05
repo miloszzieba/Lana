@@ -9,6 +9,6 @@ namespace Lana.Core.CQRS
 {
     public interface IHandleEvent<TEvent> where TEvent : IEvent
     {
-        Task HandleAsync(TEvent @event, CancellationToken cancellationToken);
+        Task HandleAsync(TEvent eventInstance, CancellationToken cancellationToken);
     }
 }

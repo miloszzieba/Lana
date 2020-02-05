@@ -1,4 +1,5 @@
-﻿using Lana.Domain.Models;
+﻿using Lana.Domain.Predictions;
+using Lana.Domain.Predictions.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -14,19 +15,18 @@ namespace Lana.Domain
 {
     public class SpeechListener
     {
-        private readonly SynchronizationContext _synchronizationContext;
-        private readonly ICollection<Prediction> _predictionsList;
+        private readonly IPredictionRaportingService _predictionRaportingService;
 
-        public SpeechListener(ICollection<Prediction> predictionsList, SynchronizationContext synchronizationContext)
+        public SpeechListener(IPredictionRaportingService predictionRaportingService)
         {
-            this._predictionsList = predictionsList;
-            this._synchronizationContext = synchronizationContext;
+            this._predictionRaportingService = predictionRaportingService;
         }
 
         //I need cancellationTokenSource, because I might want to cancel listening by command.
         public void Run(CancellationTokenSource cancellationTokenSource)
         {
-            var context = SynchronizationContext.Current;
+            if (cancellationTokenSource == null) throw new ArgumentNullException(nameof(cancellationTokenSource));
+
             using (var recognizer = new SpeechRecognitionEngine(new CultureInfo("en-US")))
             {
                 var grammars = CreateGrammars();
@@ -45,7 +45,7 @@ namespace Lana.Domain
             }
         }
 
-        private IEnumerable<Grammar> CreateGrammars()
+        private static IEnumerable<Grammar> CreateGrammars()
         {
             var defaultGrammarBuilder = new GrammarBuilder();
             defaultGrammarBuilder.AppendDictation();
@@ -67,45 +67,32 @@ namespace Lana.Domain
 
         private void SpeechRecognizedHandler(object sender, SpeechRecognizedEventArgs e)
         {
-            string prediction = e.Result.Text;
-            //REFACTOR
-            _synchronizationContext.Send(x =>
-                _predictionsList.Add(new Prediction()
-                {
-                    Source = "Windows",
-                    Importance = "Main",
-                    Text = prediction
-                }), null);
+            var predictions = new List<Prediction>();
+
+            predictions.Add(new Prediction("Windows", e.Result.Text));
 
             foreach (var predictionAlternative in e.Result.Alternates)
-                //REFACTOR
-                _synchronizationContext.Send(x =>
-                    _predictionsList.Add(new Prediction()
-                    {
-                        Source = "Windows",
-                        Importance = "Alternative",
-                        Text = predictionAlternative.Text
-                    }), null);
+                predictions.Add(new Prediction("Windows", predictionAlternative.Text));
 
-            //REFACTOR
-            if (e.Result.Grammar.Name == "Lana"
-                || prediction.Contains("Lana")
-                || e.Result.Alternates.Any(x => x.Text.Contains("Lana")))
+            WitAIHandle(e, predictions);
+
+            this._predictionRaportingService.AddPredictions(predictions);
+        }
+
+        private static void WitAIHandle(SpeechRecognizedEventArgs e, List<Prediction> predictions)
+        {
+            //So we won't send every sound to Wit.AI and disrupt results
+            if (!predictions.Any(x => x.Text.Contains("Lana")))
+                return;
+
+            using (var waveStream = new MemoryStream())
             {
-                var waveStream = new MemoryStream();
                 e.Result.Audio.WriteToWaveStream(waveStream);
                 waveStream.Flush();
 
                 var converter = new WitAiParser();
                 var witaiPrediction = converter.Parse(waveStream.ToArray()).GetAwaiter().GetResult();
-                //REFACTOR
-                _synchronizationContext.Send(x =>
-                    _predictionsList.Add(new Prediction()
-                    {
-                        Source = "Wit.AI",
-                        Importance = "Alternative",
-                        Text = witaiPrediction
-                    }), null);
+                predictions.Add(new Prediction("Wit.AI", witaiPrediction));
             }
         }
     }
