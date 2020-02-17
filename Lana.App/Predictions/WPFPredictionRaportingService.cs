@@ -1,5 +1,5 @@
-﻿using Lana.Domain.Predictions;
-using Lana.Domain.Predictions.Models;
+﻿using Lana.Core.Interfaces;
+using Lana.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

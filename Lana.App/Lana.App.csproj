@@ -61,6 +61,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -95,6 +96,7 @@
       <DependentUpon>LanaApp.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MainWindow.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -150,6 +152,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Lana.Core\Lana.Core.csproj">
+      <Project>{2db230ec-881c-4355-86ed-6ce55d28f6bd}</Project>
+      <Name>Lana.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Lana.Domain\Lana.Domain.csproj">
       <Project>{9655A5FE-B601-422C-A206-4C09F2F07F59}</Project>
       <Name>Lana.Domain</Name>

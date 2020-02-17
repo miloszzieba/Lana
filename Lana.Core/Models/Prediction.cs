@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lana.Domain.Predictions.Models
+namespace Lana.Core.Models
 {
     public class Prediction
     {

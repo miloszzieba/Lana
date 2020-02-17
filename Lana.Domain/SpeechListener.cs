@@ -1,5 +1,5 @@
-﻿using Lana.Domain.Predictions;
-using Lana.Domain.Predictions.Models;
+﻿using Lana.Core.Interfaces;
+using Lana.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,10 +16,14 @@ namespace Lana.Domain
     public class SpeechListener
     {
         private readonly IPredictionRaportingService _predictionRaportingService;
+        private readonly IEnumerable<IPredictionListener> _predictionListeners;
+        private readonly ISpeechGrammarProvider _speechGrammarProvider;
 
-        public SpeechListener(IPredictionRaportingService predictionRaportingService)
+        public SpeechListener(IPredictionRaportingService predictionRaportingService, IEnumerable<IPredictionListener> predictionListeners, ISpeechGrammarProvider speechGrammarProvider)
         {
             this._predictionRaportingService = predictionRaportingService;
+            this._predictionListeners = predictionListeners;
+            this._speechGrammarProvider = speechGrammarProvider;
         }
 
         //I need cancellationTokenSource, because I might want to cancel listening by command.
@@ -29,7 +33,7 @@ namespace Lana.Domain
 
             using (var recognizer = new SpeechRecognitionEngine(new CultureInfo("en-US")))
             {
-                var grammars = CreateGrammars();
+                var grammars = this._speechGrammarProvider.ProvideGrammars();
                 foreach (var grammar in grammars)
                     recognizer.LoadGrammarAsync(grammar);
 
@@ -45,26 +49,6 @@ namespace Lana.Domain
             }
         }
 
-        private static IEnumerable<Grammar> CreateGrammars()
-        {
-            var defaultGrammarBuilder = new GrammarBuilder();
-            defaultGrammarBuilder.AppendDictation();
-            var defaultGrammar = new Grammar(defaultGrammarBuilder);
-            defaultGrammar.Name = "Default";
-
-            var lanaGrammarBuilder = new GrammarBuilder();
-            lanaGrammarBuilder.Append("Lana");
-            lanaGrammarBuilder.AppendDictation();
-            var lanaGrammar = new Grammar(lanaGrammarBuilder);
-            lanaGrammar.Name = "Lana";
-
-            return new List<Grammar>()
-            {
-                defaultGrammar,
-                lanaGrammar
-            };
-        }
-
         private void SpeechRecognizedHandler(object sender, SpeechRecognizedEventArgs e)
         {
             var predictions = new List<Prediction>();
@@ -74,14 +58,14 @@ namespace Lana.Domain
             foreach (var predictionAlternative in e.Result.Alternates)
                 predictions.Add(new Prediction("Windows", predictionAlternative.Text));
 
-            WitAIHandle(e, predictions);
+            ProvidePredictions(e, predictions);
 
             this._predictionRaportingService.AddPredictions(predictions);
         }
 
-        private static void WitAIHandle(SpeechRecognizedEventArgs e, List<Prediction> predictions)
+        private void ProvidePredictions(SpeechRecognizedEventArgs e, List<Prediction> predictions)
         {
-            //So we won't send every sound to Wit.AI and disrupt results
+            //So we won't send every sound to clouds and disrupt results
             if (!predictions.Any(x => x.Text.Contains("Lana")))
                 return;
 
@@ -90,9 +74,11 @@ namespace Lana.Domain
                 e.Result.Audio.WriteToWaveStream(waveStream);
                 waveStream.Flush();
 
-                var converter = new WitAiParser();
-                var witaiPrediction = converter.Parse(waveStream.ToArray()).GetAwaiter().GetResult();
-                predictions.Add(new Prediction("Wit.AI", witaiPrediction));
+                foreach (var listener in this._predictionListeners)
+                {
+                    var prediction = listener.Listen(waveStream);
+                    predictions.Add(new Prediction(listener.Name, prediction));
+                }
             }
         }
     }

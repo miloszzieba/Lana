@@ -1,4 +1,4 @@
-﻿using Lana.Domain.Predictions.Models;
+﻿using Lana.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lana.Domain.Predictions
+namespace Lana.Core.Interfaces
 {
     public interface IPredictionRaportingService
     {

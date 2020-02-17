@@ -1,11 +1,13 @@
 ﻿using Lana.App.Predictions;
+using Lana.Core.Interfaces;
 using Lana.Domain;
-using Lana.Domain.Predictions;
-using Lana.Domain.Predictions.Models;
+using Lana.Domain.Actions;
+using Lana.Domain.Predictions.Listeners;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Configuration;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -32,30 +34,11 @@ namespace Lana.App
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
         private NotifyIcon _notifyIcon = null;
-        private CancellationTokenSource _cts = null;
-        private readonly IPredictionRaportingService _predictionRaportingService = null;
-        private readonly Task _speechListenerTask = null;
 
         public MainWindow()
         {
             InitializeComponent();
-            _predictionRaportingService = InitializePredictionRaportingService();
-            _speechListenerTask = InitializeSpeechListener();
-
-            DataContext = _predictionRaportingService.PredictionsList;
-        }
-
-        private IPredictionRaportingService InitializePredictionRaportingService()
-        {
-            var synchronizationContext = SynchronizationContext.Current;
-            return new WPFPredictionRaportingService(synchronizationContext);
-        }
-
-        private Task InitializeSpeechListener()
-        {
-            _cts = new CancellationTokenSource();
-            var _speechListener = new SpeechListener(_predictionRaportingService);
-            return Task.Run(() => _speechListener.Run(_cts));
+            InitializeServices();
         }
 
         protected override void OnInitialized(EventArgs e)

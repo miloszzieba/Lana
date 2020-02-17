@@ -40,6 +40,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Speech" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -55,6 +56,13 @@
     <Compile Include="CQRS\IHandleEvent.cs" />
     <Compile Include="CQRS\IHandleQuery.cs" />
     <Compile Include="CQRS\IQuery.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Interfaces\ILanaActionService.cs" />
+    <Compile Include="Interfaces\IPredictionListener.cs" />
+    <Compile Include="Interfaces\IPredictionRaportingService.cs" />
+    <Compile Include="Interfaces\ISpeechGrammarProvider.cs" />
+    <Compile Include="Models\Action.cs" />
+    <Compile Include="Models\Prediction.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
